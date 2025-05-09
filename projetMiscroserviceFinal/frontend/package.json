@@ -1,0 +1,10 @@
+{
+  "name": "library-frontend",
+  "version": "1.0.0",
+  "description": "Frontend HTML/CSS/JS pour la gestion de bibliothèque",
+  "main": "main.js",
+  "scripts": {
+    "start": "echo 'Ouvrez index.html dans votre navigateur'"
+  },
+  "dependencies": {}
+}

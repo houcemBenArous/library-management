@@ -1,0 +1,272 @@
+# Liste des API du projet Mini Bibliothèque (REST, GraphQL, gRPC)
+
+## 1. Authentification & Utilisateurs (REST)
+
+### 1.1. Inscription utilisateur
+- **POST /user/register**
+  - Input: `{ nom, email, mot_de_passe }`
+  - Output: `{ success: true }` ou `{ error }`
+- (REST) POST http://localhost:4000/user/register
+  - Exemple d'input (JSON):
+    ```json
+    {
+      "nom": "Jean Dupont",
+      "email": "jean.dupont@email.com",
+      "mot_de_passe": "monmotdepasse"
+    }
+    ```
+
+### 1.2. Connexion utilisateur
+- **POST /user/login**
+  - Input: `{ email, mot_de_passe }`
+  - Output: `{ id, nom, email }` ou `{ error }`
+- (REST) POST http://localhost:4000/user/login
+  - Exemple d'input (JSON):
+    ```json
+    {
+      "email": "jean.dupont@email.com",
+      "mot_de_passe": "monmotdepasse"
+    }
+    ```
+
+### 1.3. Connexion admin
+- **POST /admin/login**
+  - Input: `{ email, mot_de_passe }`
+  - Output: `{ message }` ou `{ error }`
+- (REST) POST http://localhost:4000/admin/login
+  - Exemple d'input (JSON):
+    ```json
+    {
+      "email": "admin@admin.com",
+      "mot_de_passe": "admin123"
+    }
+    ```
+
+
+## 2. Livres (Gestion Admin) (REST)
+
+### 2.1. Lister tous les livres
+- **GET /admin/books**
+  - Output: `[ { id, titre, auteur, categorie, disponible } ]`
+- (REST) GET http://localhost:4000/admin/books
+
+### 2.2. Détail d'un livre
+- **GET /admin/books/:id**
+  - Output: `{ id, titre, auteur, categorie, disponible }` ou `{ error }`
+- (REST) GET http://localhost:4000/admin/books/:id
+
+### 2.3. Ajouter un livre
+- **POST /admin/books**
+  - Input: `{ titre, auteur, categorie }`
+  - Output: `{ id, titre, auteur, categorie, disponible }` ou `{ error }`
+- (REST) POST http://localhost:4000/admin/books
+  - Exemple d'input (JSON):
+    ```json
+    {
+      "titre": "Le Petit Prince",
+      "auteur": "Antoine de Saint-Exupéry",
+      "categorie": "Roman"
+    }
+    ```
+
+### 2.4. Modifier un livre
+- **PUT /admin/books/:id**
+  - Input: `{ titre, auteur, categorie }`
+  - Output: `{ id, titre, auteur, categorie }` ou `{ error }`
+- (REST) PUT http://localhost:4000/admin/books/:id
+  - Exemple d'input (JSON):
+    ```json
+    {
+      "titre": "Le Petit Prince (édition 2025)",
+      "auteur": "Antoine de Saint-Exupéry",
+      "categorie": "Roman"
+    }
+    ```
+
+### 2.5. Supprimer un livre
+- **DELETE /admin/books/:id**
+  - Output: `{ success: true }` ou `{ error }`
+- (REST) DELETE http://localhost:4000/admin/books/:id
+
+### 2.6. Retour d'un livre (rendre disponible)
+- **POST /admin/books/:id/retour**
+  - Output: `{ success: true }` ou `{ error }`
+- (REST) POST <http://localhost:4000/admin/books/:id/retour>
+
+
+## 3. Réservations (REST)
+
+### 3.1. Demander une réservation (utilisateur)
+- **POST /api/reservations**
+  - Input: `{ user_id, book_id }`
+  - Output: `{ success: true }` ou `{ error }`
+- (REST) POST http://localhost:4000/api/reservations
+  - Exemple d'input (JSON):
+    ```json
+    {
+      "user_id": 2,
+      "book_id": 1
+    }
+    ```
+
+### 3.2. Lister toutes les réservations (admin)
+- **GET /admin/reservations**
+  - Output: `[ { id, user_id, user_nom, book_id, book_titre, date_reservation, statut } ]`
+- (REST) GET http://localhost:4000/admin/reservations
+
+### 3.3. Annuler une réservation (utilisateur)
+- **DELETE /api/reservations/:id**
+  - Output: `{ success: true }` ou `{ error }`
+- (REST) DELETE http://localhost:4000/api/reservations/:id
+
+
+## 4. Recherche de livres (GraphQL)
+
+### 4.1. Rechercher des livres
+- **POST /graphql**
+  - Query:
+    ```graphql
+    query {
+      books(titre: "", auteur: "", categorie: "") {
+        id
+        titre
+        auteur
+        categorie
+        disponible
+      }
+    }
+    ```
+  - Output: `[ { id, titre, auteur, categorie, disponible } ]`
+- (GraphQL) POST http://localhost:4000/graphql
+  - Query books:
+    ```graphql
+    query {
+      books(titre: "", auteur: "", categorie: "") {
+        id
+        titre
+        auteur
+        categorie
+        disponible
+      }
+    }
+    ```
+  - Body (JSON):
+    ```json
+    {
+      "query": "query { books(titre: \"\", auteur: \"\", categorie: \"\") { id titre auteur categorie disponible } }"
+    }
+    ```
+
+### 4.2. Détail d'un livre
+- **POST /graphql**
+  - Query:
+    ```graphql
+    query {
+      book(id: ID!) {
+        id
+        titre
+        auteur
+        categorie
+        disponible
+      }
+    }
+    ```
+  - Output: `{ id, titre, auteur, categorie, disponible }`
+- (GraphQL) POST http://localhost:4000/graphql
+  - Query book:
+    ```graphql
+    query {
+      book(id: 1) {
+        id
+        titre
+        auteur
+        categorie
+        disponible
+      }
+    }
+    ```
+  - Body (JSON):
+    ```json
+    {
+      "query": "query { book(id: 1) { id titre auteur categorie disponible } }"
+    }
+    ```
+
+
+## 5. Microservices (gRPC)
+
+### 5.1. InventoryService (gRPC, port 50051)
+- **ReserveBook(ReserveBookRequest) → ReserveBookResponse**
+  - Input: `{ book_id }`
+  - Output: `{ success, message }`
+- **CheckAvailability(CheckAvailabilityRequest) → CheckAvailabilityResponse**
+  - Input: `{ book_id }`
+  - Output: `{ disponible }`
+- **ReturnBook(ReturnBookRequest) → ReturnBookResponse**
+  - Input: `{ book_id }`
+  - Output: `{ success, message }`
+- (gRPC) ReserveBook
+  - Service: InventoryService
+  - Method: ReserveBook(ReserveBookRequest) returns (ReserveBookResponse)
+  - Exemple d'input:
+    ```json
+    {
+      "book_id": 1
+    }
+    ```
+- (gRPC) CheckAvailability
+  - Service: InventoryService
+  - Method: CheckAvailability(CheckAvailabilityRequest) returns (CheckAvailabilityResponse)
+  - Exemple d'input:
+    ```json
+    {
+      "book_id": 1
+    }
+    ```
+- (gRPC) ReturnBook
+  - Service: InventoryService
+  - Method: ReturnBook(ReturnBookRequest) returns (ReturnBookResponse)
+  - Exemple d'input:
+    ```json
+    {
+      "book_id": 1
+    }
+    ```
+
+### 5.2. StatisticsService (gRPC, port 50053)
+- **addStatistic(StatisticRequest) → StatisticResponse**
+  - Input: `{ bookId, userId }`
+  - Output: `{ success }`
+- **getStatistics(Empty) → StatisticsResponse**
+  - Input: `{}`
+  - Output: `{ stats: { [bookId]: count } }`
+- (gRPC) addStatistic
+  - Service: Statistics
+  - Method: addStatistic(StatisticRequest) returns (StatisticResponse)
+  - Exemple d'input:
+    ```json
+    {
+      "bookId": "1",
+      "userId": "2"
+    }
+    ```
+- (gRPC) getStatistics
+  - Service: Statistics
+  - Method: getStatistics(Empty) returns (StatisticsResponse)
+  - Exemple d'input:
+    ```json
+    {}
+    ```
+
+
+## Remarques
+- Tous les endpoints REST attendent et renvoient du JSON.
+- Les routes nécessitant des droits admin sont préfixées par `/admin`.
+- Le statut de réservation est toujours 'active'.
+- L'authentification est basique (pas de JWT, session côté frontend).
+- Pour tester gRPC, utiliser un client gRPC (ex: BloomRPC, Insomnia, Postman gRPC, etc.).
+- Pour REST et GraphQL, Thunder Client ou Postman sont adaptés.
+- Remplacez `:id` par l'identifiant voulu.
+- Pour REST et GraphQL, utilisez Thunder Client ou Postman.
+- Pour gRPC, utilisez BloomRPC, Insomnia, Postman gRPC, etc.
+- Remplacez les IDs par ceux de votre base.

@@ -1,0 +1,194 @@
+# Description détaillée et pédagogique du projet Mini Bibliothèque (Microservices)
+
+## 1. Introduction générale
+
+Ce projet est une application de gestion de bibliothèque conçue pour t’apprendre les bases de Node.js, Express.js, REST, GraphQL et t’initier à gRPC. Il est organisé en microservices : chaque partie du projet a un rôle précis et communique avec les autres. Tu vas découvrir comment tout cela fonctionne, étape par étape, même si tu es débutant.
+
+---
+
+## 2. Technologies utilisées (avec explications)
+
+- **Node.js** : Permet d’exécuter du JavaScript côté serveur (pas dans le navigateur). C’est la base de tous les services ici.
+- **Express.js** : Un framework pour créer facilement des serveurs web/API avec Node.js.
+- **REST** : Un style d’API où chaque ressource (livre, utilisateur, réservation) a une URL et on utilise les méthodes HTTP (GET, POST, DELETE, etc.).
+- **GraphQL** : Une alternative à REST pour interroger les données : tu demandes exactement ce que tu veux, rien de plus.
+- **gRPC** : Un protocole de communication rapide et typé entre services, basé sur des fichiers `.proto` (plus complexe, mais très utilisé en microservices).
+- **SQLite** : Une base de données légère, stockée dans un fichier, très simple à utiliser pour débuter.
+- **HTML/CSS/JS + Bootstrap** : Pour l’interface utilisateur (frontend).
+
+---
+
+## 3. Structure des dossiers et fichiers (avec explications)
+
+- **backend/**
+  - `index.js` : Le cœur du backend. Il crée le serveur Express, définit les routes REST et GraphQL, gère la logique métier (réservations, utilisateurs, livres), et communique avec les microservices via gRPC.
+  - `package.json` : Liste les dépendances (modules Node.js nécessaires).
+
+- **frontend/**
+  - `index.html` : La page principale de l’application (interface utilisateur). Utilise Bootstrap pour le style.
+  - `main.js` : Code JavaScript qui gère la navigation, les appels API, l’affichage dynamique des livres et réservations, la gestion de session utilisateur.
+  - `style.css` : Styles personnalisés pour l’interface.
+  - `package.json` : (Souvent vide ici, car on utilise du JS natif.)
+
+- **db/**
+  - `create_db.js` : Script Node.js qui crée la base SQLite, les tables (`books`, `users`, `reservations`) et insère des utilisateurs par défaut.
+  - `library.db` : Le fichier de base de données SQLite généré.
+
+- **services/inventoryService/**
+  - `index.js` : Microservice gRPC qui gère la disponibilité des livres (réserver, vérifier, rendre disponible).
+  - `inventory.proto` : Fichier de définition gRPC : décrit les messages et méthodes (ReserveBook, CheckAvailability, ReturnBook).
+  - `package.json` : Dépendances du microservice.
+
+- **services/statisticsService/**
+  - `index.js` : Microservice gRPC qui collecte et expose les statistiques de réservation (nombre de réservations par livre).
+  - `statistics.proto` : Fichier de définition gRPC (addStatistic, getStatistics).
+  - `package.json` : Dépendances du microservice.
+
+- **test_api.txt** : Documentation de toutes les routes et API du projet (REST, GraphQL, gRPC) avec exemples d’inputs/outputs.
+
+- **README.md** : Présentation rapide, instructions d’installation et de lancement.
+
+---
+
+## 4. Explication détaillée du fonctionnement global
+
+### 4.1. Le Frontend (interface utilisateur)
+- L’utilisateur ouvre `frontend/index.html` dans son navigateur.
+- Il voit la liste des livres, peut se connecter/s’inscrire, réserver un livre, voir ses réservations, annuler une réservation.
+- Toutes les actions du frontend envoient des requêtes HTTP (REST ou GraphQL) au backend.
+
+### 4.2. Le Backend (Express.js)
+- C’est le point d’entrée de toutes les requêtes du frontend.
+- Il expose :
+  - Des routes REST (ex : `/api/reservations`, `/user/login`, `/admin/books`)
+  - Un endpoint GraphQL (`/graphql`)
+- Il gère la logique métier : vérifie les droits, la disponibilité des livres, crée/supprime des réservations, etc.
+- Il communique avec les microservices via gRPC pour :
+  - Vérifier/réserver/rendre un livre (InventoryService)
+  - Mettre à jour les statistiques (StatisticsService)
+
+### 4.3. Les microservices (gRPC)
+- **InventoryService** : Gère l’état des livres (disponible/réservé). Le backend l’appelle pour savoir si un livre est dispo, le réserver, ou le rendre dispo après annulation.
+- **StatisticsService** : Compte le nombre de réservations par livre. Le backend l’appelle à chaque réservation.
+- Ces services sont indépendants : tu pourrais les lancer sur d’autres serveurs, les remplacer, etc.
+
+### 4.4. La base de données (SQLite)
+- Stocke toutes les infos : livres, utilisateurs, réservations.
+- Le backend y accède directement (pas les microservices).
+
+---
+
+## 5. Explication pédagogique des concepts clés
+
+### 5.1. Node.js
+- Permet d’exécuter du JavaScript côté serveur (hors navigateur).
+- On l’utilise pour tous les scripts et serveurs du projet.
+
+### 5.2. Express.js
+- Un framework qui simplifie la création de serveurs web/API avec Node.js.
+- On définit des routes (URL) et ce qu’elles font (ex : POST `/api/reservations`).
+
+### 5.3. REST (API RESTful)
+- Chaque ressource (livre, utilisateur, réservation) a une URL.
+- On utilise les méthodes HTTP :
+  - **GET** : lire des données (ex : liste des livres)
+  - **POST** : créer (ex : réserver un livre)
+  - **DELETE** : supprimer (ex : annuler une réservation)
+- Les données sont échangées en JSON.
+
+### 5.4. GraphQL
+- Permet de demander exactement les champs dont tu as besoin (ex : juste le titre et l’auteur d’un livre).
+- Une seule URL (`/graphql`), mais des requêtes très flexibles.
+- Pratique pour la recherche ou les interfaces dynamiques.
+
+### 5.5. gRPC (explication pour débutant)
+- gRPC permet à deux programmes (ici, backend et microservices) de communiquer très rapidement.
+- On décrit les messages et méthodes dans un fichier `.proto` (ex : ReserveBook, ReturnBook).
+- Les messages sont typés (on sait à l’avance ce qu’on envoie/reçoit).
+- C’est plus rapide et plus strict que REST, mais plus complexe à mettre en place.
+- Dans ce projet, tu n’as pas à écrire de gRPC côté frontend : c’est le backend qui s’en occupe.
+
+---
+
+## 6. Détail des principales routes et APIs (avec exemples)
+
+### 6.1. Utilisateurs
+- **Inscription** : `POST /user/register` (REST)
+  - Body JSON : `{ "nom": "Alice", "email": "alice@mail.com", "mot_de_passe": "1234" }`
+- **Connexion** : `POST /user/login` (REST)
+  - Body JSON : `{ "email": "alice@mail.com", "mot_de_passe": "1234" }`
+
+### 6.2. Livres (admin)
+- **CRUD** : `GET/POST/PUT/DELETE /admin/books` (REST)
+- **Retour d’un livre** : `POST /admin/books/:id/retour` (REST)
+
+### 6.3. Réservations (utilisateur)
+- **Réserver un livre** : `POST /api/reservations` (REST)
+  - Body JSON : `{ "user_id": 1, "book_id": 2 }`
+  - Le backend vérifie la disponibilité via InventoryService (gRPC), réserve le livre, enregistre la réservation, met à jour les statistiques.
+- **Annuler une réservation** : `DELETE /api/reservations/:id` (REST)
+  - Le backend supprime la réservation et rend le livre disponible via InventoryService (gRPC).
+- **Voir toutes les réservations (admin)** : `GET /admin/reservations` (REST)
+  - Affiche le nom de l’utilisateur, le titre du livre, la date, le statut.
+
+### 6.4. Recherche de livres (GraphQL)
+- **Requête** : `POST /graphql`
+  - Exemple :
+    ```graphql
+    query {
+      books(titre: "Harry") {
+        id
+        titre
+        auteur
+        disponible
+      }
+    }
+    ```
+
+---
+
+## 7. Détail du fonctionnement gRPC (pour débutant)
+
+### 7.1. InventoryService
+- **ReserveBook** : Le backend demande à InventoryService de réserver un livre (le rendre indisponible).
+- **CheckAvailability** : Le backend demande si un livre est disponible avant de réserver.
+- **ReturnBook** : Le backend demande de rendre un livre disponible après annulation.
+- **Pourquoi ?** : Cela évite les bugs si plusieurs utilisateurs réservent en même temps.
+
+### 7.2. StatisticsService
+- **addStatistic** : Le backend informe StatisticsService à chaque réservation.
+- **getStatistics** : Permet d’obtenir le nombre de réservations par livre (pour un tableau de bord).
+
+---
+
+## 8. Exemple de scénario utilisateur (étape par étape)
+
+1. L’utilisateur s’inscrit ou se connecte.
+2. Il recherche un livre via l’interface (GraphQL).
+3. Il clique sur « Réserver » : le frontend envoie une requête REST au backend.
+4. Le backend vérifie la disponibilité via InventoryService (gRPC).
+5. Si le livre est dispo, il crée la réservation, met à jour l’inventaire et les statistiques.
+6. L’utilisateur peut voir et annuler ses réservations.
+7. L’admin gère les livres et voit toutes les réservations.
+
+---
+
+## 9. Conseils de test et outils
+
+- **Pour tester les routes REST/GraphQL** : utilise Postman ou Thunder Client (extension VSCode).
+- **Pour tester les services gRPC** : utilise BloomRPC, Insomnia, ou Postman (mode gRPC).
+- **Pour voir la base SQLite** : DB Browser for SQLite (logiciel gratuit).
+
+---
+
+## 10. Pour aller plus loin (idées d’amélioration)
+
+- Ajouter un système d’authentification plus sécurisé (JWT, OAuth).
+- Ajouter des microservices (notifications, recommandations).
+- Déployer chaque service dans un conteneur Docker.
+- Ajouter des tests automatisés (Jest, Mocha).
+- Améliorer l’interface utilisateur.
+
+---
+
+**Ce document est conçu pour t’accompagner pas à pas dans la compréhension et l’utilisation du projet, même si tu débutes en Node.js, Express, REST, GraphQL et gRPC.**

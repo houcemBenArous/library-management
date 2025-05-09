@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package statistics;
+
+service Statistics {
+  rpc addStatistic (StatisticRequest) returns (StatisticResponse);
+  rpc getStatistics (Empty) returns (StatisticsResponse);
+}
+
+message StatisticRequest {
+  string bookId = 1;
+  string userId = 2;
+}
+
+message StatisticResponse {
+  bool success = 1;
+}
+
+message Empty {}
+
+message StatisticsResponse {
+  map<string, int32> stats = 1;
+}
